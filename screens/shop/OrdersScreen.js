@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flatlist, Text, Platform } from 'react-native';
+import { FlatList, Text, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 
@@ -9,10 +9,10 @@ const OrdersScreen = props => {
     const orders = useSelector(state => state.orders.orders);
 
     return (
-        <Flatlist
+        <FlatList
             data={orders}
             keyExtractor={item => item.id}
-            renderItem={itemData => <Text>{itemData.item.totalAmount}</Text>}
+            renderItem={itemData => <Text>{itemData.item.totalAmount.toFixed(2)}</Text>}
         />
     );
 };
