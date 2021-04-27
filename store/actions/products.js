@@ -42,7 +42,12 @@ export const fetchProducts = () => {
 };
 
 export const deleteProduct = productId => {
-    return { type: DELETE_PRODUCT, pid: productId };
+    return async dispatch => {
+        await fetch(`https://rntpg-shopapp-default-rtdb.firebaseio.com/products/${productId}.json`, {
+            method: 'DELETE'
+        });
+        dispatch({ type: DELETE_PRODUCT, pid: productId });
+    };
 };
 
 export const createProduct = (title, description, imageUrl, price) => {
@@ -79,14 +84,29 @@ export const createProduct = (title, description, imageUrl, price) => {
 };
 
 export const updateProduct = (id, title, description, imageUrl) => {
-    return {
-        type: UPDATE_PRODUCT,
-        pid: id,
-        productData: {
-            title,
-            description,
-            imageUrl,
-            price
-        }
+    return async dispatch => {
+
+        await fetch(`https://rntpg-shopapp-default-rtdb.firebaseio.com/products/${id}.json`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title,
+                description,
+                imageUrl
+            })
+        });
+
+        dispatch({
+            type: UPDATE_PRODUCT,
+            pid: id,
+            productData: {
+                title,
+                description,
+                imageUrl,
+                price
+            }
+        });
     };
 };
