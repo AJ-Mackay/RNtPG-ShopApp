@@ -3,8 +3,13 @@ import { useAsyncStorage } from '@react-native-community/async-storage';
 export const AUTHENTICATE = 'AUTHENTICATE';
 export const LOGOUT = 'LOGOUT';
 
-export const authenticate = (userId, token) => {
-    return { type: AUTHENTICATE, userId: userId, token: token };
+let timer;
+
+export const authenticate = (userId, token, expiryTime) => {
+    return dispatch => {
+        dispatch(setLogoutTimer(expiryTime));
+        dispatch({ type: AUTHENTICATE, userId: userId, token: token });
+    };
 };
 
 // API Key removed from live database and new one regenerated (29/4/21)
@@ -38,7 +43,7 @@ export const signup = (email, password) => {
 
     const resData = await response.json();
     console.log(resData);
-    dispatch(authenticate(resData.idToken, resData.localId));
+    dispatch(authenticate(resData.idToken, resData.localId, parseInt(resData.expiresIn) * 1000));
     const expirationDate = new Date(new Date().getTime() + parseInt(resData.expiresIn) * 1000);
     saveDataToStorage(resData.idToken, resData.localId, expirationDate);
     };
@@ -75,14 +80,30 @@ export const login = (email, password) => {
 
     const resData = await response.json();
     console.log(resData);
-    dispatch(authenticate(resData.idToken, resData.localId));
+    dispatch(authenticate(resData.idToken, resData.localId, parseInt(resData.expiresIn) * 1000));
     const expirationDate = new Date(new Date().getTime() + parseInt(resData.expiresIn) * 1000);
     saveDataToStorage(resData.idToken, resData.localId, expirationDate);
     };
 };
 
 export const logout = () => {
+    clearLogoutTimer();
+    useAsyncStorage.removeItem('userData');
     return { type: LOGOUT };
+};
+
+const clearLogoutTimer = () => {
+    if (timer) {
+        clearTimeout(timer);
+    }
+};
+
+const setLogoutTimer = expirationTime => {
+    return dispatch => {
+        timer = setTimeout(() => {
+            dispatch(logout());
+        }, expirationTime);
+    };
 };
 
 const saveDataToStorage = (token, userId, expirationDate) => {
